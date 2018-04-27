@@ -13,17 +13,15 @@ type Store interface {
     Create(name string) error
     Delete(name string) error
     SetKey(store string, key string, value []byte) error
-    GetKey(store string, key string) error
+    GetKey(store string, key string) ([]byte, error)
     DeleteKey(store string, key string) error
 }
 
 type etcdStore struct{
-    client client.Client
-    storeName string
-    storePath string
+    client *client.Client
 }
 
-func newEtcdStore(name string) (etcdStore, error) {
+func newEtcdStore() (*etcdStore, error) {
     cfg := client.Config{
         Endpoints:               []string{"http://127.0.0.1:2379"},
         Transport:               client.DefaultTransport,
@@ -31,23 +29,25 @@ func newEtcdStore(name string) (etcdStore, error) {
     }
 	c, err := client.New(cfg)
 	if err != nil {
-        return etcdStore{}, err
+        return &etcdStore{}, err
 	}
 
-    store := etcdStore{
-        client: c,
-        storeName: name,
-        storePath: fmt.Sprintf("/stores/%s/", name),
-    }
-
-    return store, nil
+    return &etcdStore{client: &c}, nil
 }
 
-func (s *etcdStore) Create() error {
-	kapi := client.NewKeysAPI(s.client)
-	log.Printf("Creating store '%s'\n", s.storeName)
+func (s *etcdStore) storePath(storeName string) string {
+    return fmt.Sprintf("/stores/%s/", storeName)
+}
+
+func (s *etcdStore) keyPath(storeName string, keyName string) string {
+    return fmt.Sprintf("%s/%s", s.storePath(storeName), keyName)
+}
+
+func (s *etcdStore) Create(storeName string) error {
+	kapi := client.NewKeysAPI(*s.client)
+	log.Printf("Creating store '%s'\n", storeName)
     opts := client.SetOptions{Dir: true}
-    resp, err := kapi.Set(context.Background(), s.storePath, "", &opts)
+    resp, err := kapi.Set(context.Background(), s.storePath(storeName), "", &opts)
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -57,15 +57,15 @@ func (s *etcdStore) Create() error {
     return nil
 }
 
-func (s *etcdStore) Delete() error {
-	kapi := client.NewKeysAPI(s.client)
-	log.Printf("Deleting store '%s'\n", s.storeName)
+func (s *etcdStore) Delete(storeName string) error {
+	kapi := client.NewKeysAPI(*s.client)
+	log.Printf("Deleting store '%s'\n", storeName)
 
     opts := client.DeleteOptions{
         Dir: true,
         Recursive: true,
     }
-    resp, err := kapi.Delete(context.Background(), s.storePath, &opts)
+    resp, err := kapi.Delete(context.Background(), s.storePath(storeName), &opts)
 	if err != nil {
 		log.Fatal(err)
 	} else {
@@ -75,17 +75,17 @@ func (s *etcdStore) Delete() error {
     return nil
 }
 
-func (s *etcdStore) GetKey (name string) ([]byte, error) {
-	kapi := client.NewKeysAPI(s.client)
-    log.Printf("Setting key '%s' in store '%s'", name, s.storeName)
-    key := fmt.Sprintf("%s/%s", s.storePath, name)
+func (s *etcdStore) GetKey (storeName string, keyName string) ([]byte, error) {
+	kapi := client.NewKeysAPI(*s.client)
+    log.Printf("Setting key '%s' in store '%s'", keyName, storeName)
+
     // TODO do these make sens?
     opts := &client.GetOptions{
         Recursive: false,
         Quorum: true,
     }
 
-    resp, err := kapi.Get(context.Background(), key, opts)
+    resp, err := kapi.Get(context.Background(), s.keyPath(storeName, keyName), opts)
 	if err != nil {
         return []byte{}, err
 	}
@@ -98,11 +98,11 @@ func (s *etcdStore) GetKey (name string) ([]byte, error) {
     return data, nil
 }
 
-func (s *etcdStore) SetKey (name string, value []byte) error {
-	kapi := client.NewKeysAPI(s.client)
-    log.Printf("Setting key '%s' in store '%s'", name, s.storeName)
-    key := fmt.Sprintf("%s/%s", s.storePath, name)
-    resp, err := kapi.Set(context.Background(), key, base64.StdEncoding.EncodeToString(value), &client.SetOptions{})
+func (s *etcdStore) SetKey(storeName string, keyName string, value []byte) error {
+	kapi := client.NewKeysAPI(*s.client)
+    log.Printf("Setting key '%s' in store '%s'", keyName, storeName)
+
+    resp, err := kapi.Set(context.Background(), s.keyPath(storeName, keyName), base64.StdEncoding.EncodeToString(value), &client.SetOptions{})
 	if err != nil {
         return err
 	} else {
@@ -112,16 +112,16 @@ func (s *etcdStore) SetKey (name string, value []byte) error {
     return nil
 }
 
-func (s *etcdStore) DeleteKey (name string) error {
-	kapi := client.NewKeysAPI(s.client)
-    log.Printf("Deleting key '%s' in store '%s'", name, s.storeName)
-    key := fmt.Sprintf("%s/%s", s.storePath, name)
+func (s *etcdStore) DeleteKey (storeName string, keyName string) error {
+	kapi := client.NewKeysAPI(*s.client)
+    log.Printf("Deleting key '%s' in store '%s'", keyName, storeName)
+
     opts := &client.DeleteOptions{
         Recursive: false,
         Dir: false,
     }
 
-    resp, err := kapi.Delete(context.Background(), key, opts)
+    resp, err := kapi.Delete(context.Background(), s.keyPath(storeName, keyName), opts)
 	if err != nil {
         return err
 	} else {
