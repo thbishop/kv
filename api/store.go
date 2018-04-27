@@ -12,7 +12,7 @@ type Store interface {
     Create(name string) error
     SetKey(store string, key string, value []byte) error
     GetKey(store string, key string) error
-    // Set(key string, value []byte) error
+    DeleteKey(store string, key string) error
 }
 
 type etcdStore struct{
@@ -82,6 +82,25 @@ func (s *etcdStore) SetKey (store string, name string, value []byte) error {
 	} else {
 		// print common key info
 		log.Printf("Set is done. Metadata is %q\n", resp)
+	}
+    return nil
+}
+
+func (s *etcdStore) DeleteKey (store string, name string) error {
+	kapi := client.NewKeysAPI(s.client)
+    log.Printf("Deleting key '%s' in store '%s'", name, store)
+    key := "/" + store + "/" + name
+    opts := &client.DeleteOptions{
+        Recursive: false,
+        Dir: false,
+    }
+
+    resp, err := kapi.Delete(context.Background(), key, opts)
+	if err != nil {
+        return err
+	} else {
+		// print common key info
+		log.Printf("Delete is done. Metadata is %q\n", resp)
 	}
     return nil
 }
