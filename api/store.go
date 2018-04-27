@@ -22,23 +22,25 @@ type etcdStore struct{
     storeName string
     storePath string
 }
-func newEtcdStore(name string) etcdStore {
+
+func newEtcdStore(name string) (etcdStore, error) {
     cfg := client.Config{
         Endpoints:               []string{"http://127.0.0.1:2379"},
         Transport:               client.DefaultTransport,
-        // set timeout per request to fail fast when the target endpoint is unavailable
         HeaderTimeoutPerRequest: time.Second,
     }
 	c, err := client.New(cfg)
 	if err != nil {
-		log.Fatal(err)
+        return etcdStore{}, err
 	}
 
-    return etcdStore{
+    store := etcdStore{
         client: c,
         storeName: name,
         storePath: fmt.Sprintf("/stores/%s/", name),
     }
+
+    return store, nil
 }
 
 func (s *etcdStore) Create() error {

@@ -1,7 +1,6 @@
 package main
 
 import(
-    "fmt"
     "io/ioutil"
     "log"
     "net/http"
@@ -10,9 +9,16 @@ import(
 
 func createStore(w http.ResponseWriter, r *http.Request) {
     name := mux.Vars(r)["store-name"]
-    fmt.Printf("Got path var of: %s\n", name)
-    store := newEtcdStore(name)
-    err := store.Create()
+    log.Printf("Got path var of: %s\n", name)
+    store, err := newEtcdStore(name)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
+        w.Write([]byte(`{ "error": ` + err.Error() + `}`))
+        return
+    }
+
+    err = store.Create()
     if err != nil {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
@@ -27,9 +33,16 @@ func createStore(w http.ResponseWriter, r *http.Request) {
 
 func deleteStore(w http.ResponseWriter, r *http.Request) {
     name := mux.Vars(r)["store-name"]
-    fmt.Printf("Got path var of: %s\n", name)
-    store := newEtcdStore(name)
-    err := store.Delete()
+    log.Printf("Got path var of: %s\n", name)
+    store, err := newEtcdStore(name)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
+        w.Write([]byte(`{ "error": ` + err.Error() + `}`))
+        return
+    }
+
+    err = store.Delete()
     if err != nil {
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
@@ -41,10 +54,17 @@ func deleteStore(w http.ResponseWriter, r *http.Request) {
 }
 
 func putKey(w http.ResponseWriter, r *http.Request) {
-    storeName := mux.Vars(r)["store-name"]
+    name := mux.Vars(r)["store-name"]
     key := mux.Vars(r)["key-name"]
-    fmt.Printf("Got store '%s' and key '%s'\n", storeName, key)
-    store := newEtcdStore(storeName)
+    log.Printf("Got store '%s' and key '%s'\n", name, key)
+
+    store, err := newEtcdStore(name)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
+        w.Write([]byte(`{ "error": ` + err.Error() + `}`))
+        return
+    }
 
     body, err := ioutil.ReadAll(r.Body)
     if err != nil {
@@ -67,10 +87,17 @@ func putKey(w http.ResponseWriter, r *http.Request) {
 }
 
 func getKey(w http.ResponseWriter, r *http.Request) {
-    storeName := mux.Vars(r)["store-name"]
+    name := mux.Vars(r)["store-name"]
     key := mux.Vars(r)["key-name"]
-    fmt.Printf("Got store '%s' and key '%s'\n", storeName, key)
-    store := newEtcdStore(storeName)
+    log.Printf("Got store '%s' and key '%s'\n", name, key)
+
+    store, err := newEtcdStore(name)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
+        w.Write([]byte(`{ "error": ` + err.Error() + `}`))
+        return
+    }
 
     data, err := store.GetKey(key)
     // TODO what if the key is not found?
@@ -88,12 +115,19 @@ func getKey(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteKey(w http.ResponseWriter, r *http.Request) {
-    storeName := mux.Vars(r)["store-name"]
+    name := mux.Vars(r)["store-name"]
     key := mux.Vars(r)["key-name"]
-    fmt.Printf("Got store '%s' and key '%s'\n", storeName, key)
-    store := newEtcdStore(storeName)
+    log.Printf("Got store '%s' and key '%s'\n", name, key)
 
-    err := store.DeleteKey(key)
+    store, err := newEtcdStore(name)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
+        w.Write([]byte(`{ "error": ` + err.Error() + `}`))
+        return
+    }
+
+    err = store.DeleteKey(key)
     // TODO what if the key is not found?
     if err != nil {
         w.Header().Set("Content-Type", "application/json")
