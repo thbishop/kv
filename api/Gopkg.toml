@@ -1,0 +1,9 @@
+# Gopkg.toml example
+#
+[[constraint]]
+  name = "github.com/gorilla/mux"
+  version = "1.6.1"
+
+[prune]
+  go-tests = true
+  unused-packages = true
