@@ -25,6 +25,21 @@ func createStore(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte(`{ "name": "` + name + `" }`))
 }
 
+func deleteStore(w http.ResponseWriter, r *http.Request) {
+    name := mux.Vars(r)["store-name"]
+    fmt.Printf("Got path var of: %s\n", name)
+    store := newEtcdStore()
+    err := store.Delete(name)
+    if err != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
+        w.Write([]byte(`{ "error": ` + err.Error() + `}`))
+        return
+    }
+
+    w.WriteHeader(http.StatusNoContent)
+}
+
 func putKey(w http.ResponseWriter, r *http.Request) {
     storeName := mux.Vars(r)["store-name"]
     key := mux.Vars(r)["key-name"]
@@ -94,6 +109,7 @@ func deleteKey(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/stores/{store-name}", createStore).Methods("PUT")
+	r.HandleFunc("/stores/{store-name}", deleteStore).Methods("DELETE")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", getKey).Methods("GET")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", deleteKey).Methods("DELETE")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", putKey).Methods("PUT")
