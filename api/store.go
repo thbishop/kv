@@ -11,6 +11,7 @@ import (
 type Store interface {
     Create(name string) error
     SetKey(store string, key string, value []byte) error
+    GetKey(store string, key string) error
     // Set(key string, value []byte) error
 }
 
@@ -46,6 +47,29 @@ func (s *etcdStore) Create(name string) error {
 		log.Printf("Set is done. Metadata is %q\n", resp)
 	}
     return nil
+}
+
+func (s *etcdStore) GetKey (store string, name string) ([]byte, error) {
+	kapi := client.NewKeysAPI(s.client)
+    log.Printf("Setting key '%s' in store '%s'", name, store)
+    key := "/" + store + "/" + name
+    // TODO do these make sens?
+    opts := &client.GetOptions{
+        Recursive: false,
+        Quorum: true,
+    }
+
+    resp, err := kapi.Get(context.Background(), key, opts)
+	if err != nil {
+        return []byte{}, err
+	}
+
+    data, err := base64.StdEncoding.DecodeString(resp.Node.Value)
+    if err != nil {
+        return []byte{}, err
+    }
+
+    return data, nil
 }
 
 func (s *etcdStore) SetKey (store string, name string, value []byte) error {
