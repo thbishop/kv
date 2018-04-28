@@ -13,6 +13,7 @@ import (
 type Store interface {
 	CreateStore(name string) error
 	DeleteStore(name string) error
+	StoreExists(name string) (bool, error)
 	SetKey(store string, key string, value []byte) error
 	GetKey(store string, key string) ([]byte, error)
 	DeleteKey(store string, key string) error
@@ -47,6 +48,7 @@ func (s *etcdStore) keyPath(storeName string, keyName string) string {
 func (s *etcdStore) CreateStore(storeName string) error {
 	kapi := client.NewKeysAPI(*s.client)
 	log.Printf("Creating store '%s'\n", storeName)
+
 	opts := client.SetOptions{Dir: true}
 	resp, err := kapi.Set(context.Background(), s.storePath(storeName), "", &opts)
 	if err != nil {
@@ -76,9 +78,32 @@ func (s *etcdStore) DeleteStore(storeName string) error {
 	return nil
 }
 
+func (s *etcdStore) StoreExists(storeName string) (bool, error) {
+	kapi := client.NewKeysAPI(*s.client)
+	log.Printf("Checking if store exists '%s'\n", storeName)
+
+	// TODO do these make sens?
+	opts := &client.GetOptions{
+		Recursive: false,
+		Quorum:    true,
+	}
+
+	_, err := kapi.Get(context.Background(), s.storePath(storeName), opts)
+	if err != nil {
+		if client.IsKeyNotFound(err) {
+			log.Printf("Store '%s' is not found", storeName)
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
+
 func (s *etcdStore) GetKey(storeName string, keyName string) ([]byte, error) {
 	kapi := client.NewKeysAPI(*s.client)
-	log.Printf("Setting key '%s' in store '%s'", keyName, storeName)
+	log.Printf("Getting key '%s' in store '%s'", keyName, storeName)
 
 	// TODO do these make sens?
 	opts := &client.GetOptions{

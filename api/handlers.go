@@ -91,6 +91,18 @@ func (a *app) createStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	exists, err := a.store.StoreExists(rinfo.storeName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if exists {
+		v = validation{message: "store already exists"}
+		respondWithBadRequest(w, v)
+		return
+	}
+
 	err = a.store.CreateStore(rinfo.storeName)
 	if err != nil {
 		respondWithServerError(w, err)
