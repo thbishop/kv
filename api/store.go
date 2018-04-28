@@ -5,6 +5,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/coreos/etcd/client"
@@ -25,8 +27,16 @@ type etcdStore struct {
 }
 
 func newEtcdStore() (*etcdStore, error) {
+	var endpoints string
+	endpoints, ok := os.LookupEnv("KV_ETCD_ENDPOINTS")
+	if !ok {
+		endpoints = "http://127.0.0.1:2379"
+	}
+
+	log.Printf("Using etcd endpoints: %s", endpoints)
+
 	cfg := client.Config{
-		Endpoints:               []string{"http://127.0.0.1:2379"},
+		Endpoints:               strings.Split(endpoints, ","),
 		Transport:               client.DefaultTransport,
 		HeaderTimeoutPerRequest: time.Second,
 	}
