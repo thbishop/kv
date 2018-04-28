@@ -21,6 +21,7 @@ func main() {
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.getKey).Methods("GET")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.deleteKey).Methods("DELETE")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.putKey).Methods("PUT")
+	r.HandleFunc("/status", a.status).Methods("GET")
 	http.Handle("/", r)
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

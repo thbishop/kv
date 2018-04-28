@@ -254,3 +254,7 @@ func (a *app) deleteKey(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (a *app) status(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
