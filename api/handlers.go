@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/gorilla/mux"
 )
@@ -22,10 +25,47 @@ func newRequestInfo(r *http.Request) requestInfo {
 	return rinfo
 }
 
+func respondWithBadRequest(w http.ResponseWriter, val validation) {
+	log.Printf("Responding with 400 due to validation error: %+v", val)
+
+	errResp := clientErrorResponse{Error: val.message}
+	b, err := json.Marshal(errResp)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(b)
+}
+
 func respondWithServerError(w http.ResponseWriter, err error) {
 	log.Printf("Responding with 500: %s", err)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusInternalServerError)
+}
+
+type validation struct {
+	valid   bool
+	message string
+}
+
+type clientErrorResponse struct {
+	Error string `json:"error"`
+}
+
+func validateAlphanumericString(s string) (validation, error) {
+	matched, err := regexp.MatchString("^[A-z-]+$", s)
+	if err != nil {
+		log.Printf("Unable to validate alphanumeric string; err: %s\n", err)
+		return validation{}, err
+	}
+
+	v := validation{valid: matched}
+	if !v.valid {
+		v.message = fmt.Sprintf("invalid value '%s'; expected alphanumeric or '-'", s)
+	}
+
+	return v, nil
 }
 
 type app struct {
@@ -35,7 +75,18 @@ type app struct {
 func (a *app) createStore(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
 
-	err := a.store.CreateStore(rinfo.storeName)
+	v, err := validateAlphanumericString(rinfo.storeName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if !v.valid {
+		respondWithBadRequest(w, v)
+		return
+	}
+
+	err = a.store.CreateStore(rinfo.storeName)
 	if err != nil {
 		respondWithServerError(w, err)
 		return
@@ -60,6 +111,17 @@ func (a *app) deleteStore(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) putKey(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
+
+	v, err := validateAlphanumericString(rinfo.keyName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if !v.valid {
+		respondWithBadRequest(w, v)
+		return
+	}
 
 	// TODO enforce data size limit
 	body, err := ioutil.ReadAll(r.Body)
