@@ -222,7 +222,6 @@ func (a *app) getKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, err := a.store.GetKey(rinfo.storeName, rinfo.keyName)
-	// TODO handle if key is not found?
 	if err != nil {
 		respondWithServerError(w, err)
 		return
@@ -236,8 +235,18 @@ func (a *app) getKey(w http.ResponseWriter, r *http.Request) {
 func (a *app) deleteKey(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
 
-	err := a.store.DeleteKey(rinfo.storeName, rinfo.keyName)
-	// TODO what if the key is not found?
+	exists, err := a.store.KeyExists(rinfo.storeName, rinfo.keyName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if !exists {
+		respondWithNotFound(w, "key does not exist")
+		return
+	}
+
+	err = a.store.DeleteKey(rinfo.storeName, rinfo.keyName)
 	if err != nil {
 		respondWithServerError(w, err)
 		return
