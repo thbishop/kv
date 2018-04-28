@@ -1,0 +1,51 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Basic ELB template
+
+Resources:
+  ELBTrafficSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow http to client host
+      VpcId: !ImportValue kv-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+
+  ELB:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      ConnectionDrainingPolicy:
+        Enabled: true
+        Timeout: 60
+      ConnectionSettings:
+        IdleTimeout: 60
+      CrossZone: true
+      Listeners:
+        - LoadBalancerPort: 80
+          InstancePort: 8080
+          Protocol: HTTP
+      HealthCheck:
+        Target: HTTP:80/status
+        HealthyThreshold: 3
+        UnhealthyThreshold: 5
+        Interval: 30
+        Timeout: 5
+      Scheme: internet-facing
+      SecurityGroups:
+        - !Ref ELBTrafficSecurityGroup
+      Subnets: !Split [",",  !ImportValue kv-public-subnets]
+      Tags:
+        -
+          Key: app
+          Value: kv
+
+Outputs:
+  ELB:
+    Description: The ELB ID
+    Value: !Ref ELB
+    Export:
+      Name: kv-api-lb-id
