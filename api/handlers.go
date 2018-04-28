@@ -78,6 +78,16 @@ func validateAlphanumericString(s string) (validation, error) {
 	return v, nil
 }
 
+func validateLength(s string, min int, max int) validation {
+	if len(s) >= min && len(s) <= max {
+		return validation{valid: true}
+	}
+	return validation{
+		valid:   false,
+		message: fmt.Sprintf("invalid value '%s'; expected length of %d to %d", s, min, max),
+	}
+}
+
 type app struct {
 	store Store
 }
@@ -92,6 +102,11 @@ func (a *app) createStore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !v.valid {
+		respondWithBadRequest(w, v)
+		return
+	}
+
+	if v = validateLength(rinfo.storeName, 3, 16); !v.valid {
 		respondWithBadRequest(w, v)
 		return
 	}
@@ -144,6 +159,11 @@ func (a *app) deleteStore(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) putKey(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
+
+	if v := validateLength(rinfo.keyName, 3, 16); !v.valid {
+		respondWithBadRequest(w, v)
+		return
+	}
 
 	exists, err := a.store.StoreExists(rinfo.storeName)
 	if err != nil {
