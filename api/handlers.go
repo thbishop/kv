@@ -34,7 +34,7 @@ type app struct {
 func (a *app) createStore(w http.ResponseWriter, r *http.Request) {
     rinfo := newRequestInfo(r)
 
-    err := a.store.Create(rinfo.storeName)
+    err := a.store.CreateStore(rinfo.storeName)
     if err != nil {
         respondWithServerError(w, err)
         return
@@ -48,7 +48,7 @@ func (a *app) createStore(w http.ResponseWriter, r *http.Request) {
 func (a *app) deleteStore(w http.ResponseWriter, r *http.Request) {
     rinfo := newRequestInfo(r)
 
-    err := a.store.Delete(rinfo.storeName)
+    err := a.store.DeleteStore(rinfo.storeName)
     if err != nil {
         respondWithServerError(w, err)
         return

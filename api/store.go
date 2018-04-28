@@ -10,8 +10,8 @@ import (
 )
 
 type Store interface {
-    Create(name string) error
-    Delete(name string) error
+    CreateStore(name string) error
+    DeleteStore(name string) error
     SetKey(store string, key string, value []byte) error
     GetKey(store string, key string) ([]byte, error)
     DeleteKey(store string, key string) error
@@ -43,7 +43,7 @@ func (s *etcdStore) keyPath(storeName string, keyName string) string {
     return fmt.Sprintf("%s/%s", s.storePath(storeName), keyName)
 }
 
-func (s *etcdStore) Create(storeName string) error {
+func (s *etcdStore) CreateStore(storeName string) error {
 	kapi := client.NewKeysAPI(*s.client)
 	log.Printf("Creating store '%s'\n", storeName)
     opts := client.SetOptions{Dir: true}
@@ -57,7 +57,7 @@ func (s *etcdStore) Create(storeName string) error {
     return nil
 }
 
-func (s *etcdStore) Delete(storeName string) error {
+func (s *etcdStore) DeleteStore(storeName string) error {
 	kapi := client.NewKeysAPI(*s.client)
 	log.Printf("Deleting store '%s'\n", storeName)
 
