@@ -3,6 +3,11 @@ AWSTemplateFormatVersion: 2010-09-09
 
 Description: Basic ELB template
 
+Parameters:
+  SSLCertARN:
+    Description: ARN for SSL cert
+    Type: String
+
 Resources:
   ELBTrafficSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -28,7 +33,7 @@ Resources:
         - LoadBalancerPort: 443
           InstancePort: 8080
           Protocol: HTTPS
-          SSLCertificateId: arn:aws:acm:us-west-2:860566296130:certificate/eee4ed4b-16da-450c-ba79-b24355dda5e5
+          SSLCertificateId: !Ref SSLCertARN
       HealthCheck:
         Target: HTTP:80/status
         HealthyThreshold: 3
