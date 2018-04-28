@@ -1,18 +1,19 @@
 package main
 
-import(
-    "log"
-    "net/http"
-    "github.com/gorilla/mux"
+import (
+	"log"
+	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func main() {
-    store, err := newEtcdStore()
-    if err != nil {
-        log.Fatalf("unable to access store: %s", err)
-    }
+	store, err := newEtcdStore()
+	if err != nil {
+		log.Fatalf("unable to access store: %s", err)
+	}
 
-    a := app{store: store}
+	a := app{store: store}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/stores/{store-name}", a.createStore).Methods("PUT")
@@ -21,5 +22,5 @@ func main() {
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.deleteKey).Methods("DELETE")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.putKey).Methods("PUT")
 	http.Handle("/", r)
-    log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
