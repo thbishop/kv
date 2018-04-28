@@ -17,6 +17,7 @@ type Store interface {
 	SetKey(store string, key string, value []byte) error
 	GetKey(store string, key string) ([]byte, error)
 	DeleteKey(store string, key string) error
+	KeyExists(store string, key string) (bool, error)
 }
 
 type etcdStore struct {
@@ -42,7 +43,7 @@ func (s *etcdStore) storePath(storeName string) string {
 }
 
 func (s *etcdStore) keyPath(storeName string, keyName string) string {
-	return fmt.Sprintf("%s/%s", s.storePath(storeName), keyName)
+	return fmt.Sprintf("%s%s", s.storePath(storeName), keyName)
 }
 
 func (s *etcdStore) CreateStore(storeName string) error {
@@ -79,8 +80,17 @@ func (s *etcdStore) DeleteStore(storeName string) error {
 }
 
 func (s *etcdStore) StoreExists(storeName string) (bool, error) {
-	kapi := client.NewKeysAPI(*s.client)
 	log.Printf("Checking if store exists '%s'\n", storeName)
+	return s.genericKeyExists(s.storePath(storeName))
+}
+
+func (s *etcdStore) KeyExists(storeName string, keyName string) (bool, error) {
+	log.Printf("Checking if key '%s' in store '%s' exists", keyName, storeName)
+	return s.genericKeyExists(s.keyPath(storeName, keyName))
+}
+
+func (s *etcdStore) genericKeyExists(keyPath string) (bool, error) {
+	kapi := client.NewKeysAPI(*s.client)
 
 	// TODO do these make sens?
 	opts := &client.GetOptions{
@@ -88,14 +98,14 @@ func (s *etcdStore) StoreExists(storeName string) (bool, error) {
 		Quorum:    true,
 	}
 
-	_, err := kapi.Get(context.Background(), s.storePath(storeName), opts)
+	_, err := kapi.Get(context.Background(), keyPath, opts)
 	if err != nil {
 		if client.IsKeyNotFound(err) {
-			log.Printf("Store '%s' is not found", storeName)
+			log.Printf("Generic key '%s' is not found", keyPath)
 			return false, nil
 		}
 
-		log.Printf("Error trying to see if store exists: %s", err)
+		log.Printf("Error trying to see if generic key exists: %s", err)
 		return false, err
 	}
 

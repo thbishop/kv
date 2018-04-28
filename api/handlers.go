@@ -39,6 +39,12 @@ func respondWithBadRequest(w http.ResponseWriter, val validation) {
 	w.Write(b)
 }
 
+func respondWithNotFound(w http.ResponseWriter, reason string) {
+	log.Printf("Responding with %d: %s", http.StatusNotFound, reason)
+
+	w.WriteHeader(http.StatusNotFound)
+}
+
 func respondWithPayloadToLarge(w http.ResponseWriter, size int64) {
 	log.Printf("Responding with %d size is %d bytes", http.StatusRequestEntityTooLarge, size)
 	w.WriteHeader(http.StatusRequestEntityTooLarge)
@@ -129,6 +135,17 @@ func (a *app) deleteStore(w http.ResponseWriter, r *http.Request) {
 func (a *app) putKey(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
 
+	exists, err := a.store.StoreExists(rinfo.storeName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if !exists {
+		respondWithNotFound(w, "store does not exist")
+		return
+	}
+
 	v, err := validateAlphanumericString(rinfo.keyName)
 	if err != nil {
 		respondWithServerError(w, err)
@@ -162,6 +179,17 @@ func (a *app) putKey(w http.ResponseWriter, r *http.Request) {
 
 func (a *app) getKey(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
+
+	exists, err := a.store.KeyExists(rinfo.storeName, rinfo.keyName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if !exists {
+		respondWithNotFound(w, "key does not exist")
+		return
+	}
 
 	data, err := a.store.GetKey(rinfo.storeName, rinfo.keyName)
 	// TODO handle if key is not found?
