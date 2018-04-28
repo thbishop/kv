@@ -11,8 +11,8 @@ Resources:
       VpcId: !ImportValue kv-vpc-id
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          FromPort: 443
+          ToPort: 443
           CidrIp: 0.0.0.0/0
 
   ELB:
@@ -25,9 +25,10 @@ Resources:
         IdleTimeout: 60
       CrossZone: true
       Listeners:
-        - LoadBalancerPort: 80
+        - LoadBalancerPort: 443
           InstancePort: 8080
-          Protocol: HTTP
+          Protocol: HTTPS
+          SSLCertificateId: arn:aws:acm:us-west-2:860566296130:certificate/eee4ed4b-16da-450c-ba79-b24355dda5e5
       HealthCheck:
         Target: HTTP:80/status
         HealthyThreshold: 3
