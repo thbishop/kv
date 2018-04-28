@@ -52,11 +52,12 @@ func (s *etcdStore) CreateStore(storeName string) error {
 	opts := client.SetOptions{Dir: true}
 	resp, err := kapi.Set(context.Background(), s.storePath(storeName), "", &opts)
 	if err != nil {
+		log.Printf("Error trying to create store: %s", err)
 		return err
-	} else {
-		// print common key info
-		log.Printf("Set is done. Metadata is %q\n", resp)
 	}
+
+	log.Printf("Set is done. Metadata is %q\n", resp)
+
 	return nil
 }
 
@@ -68,13 +69,12 @@ func (s *etcdStore) DeleteStore(storeName string) error {
 		Dir:       true,
 		Recursive: true,
 	}
-	resp, err := kapi.Delete(context.Background(), s.storePath(storeName), &opts)
+	_, err := kapi.Delete(context.Background(), s.storePath(storeName), &opts)
 	if err != nil {
+		log.Printf("Error trying to delete store: %s", err)
 		return err
-	} else {
-		// print common key info
-		log.Printf("Deletion is done. Metadata is %q\n", resp)
 	}
+
 	return nil
 }
 
@@ -95,6 +95,7 @@ func (s *etcdStore) StoreExists(storeName string) (bool, error) {
 			return false, nil
 		}
 
+		log.Printf("Error trying to see if store exists: %s", err)
 		return false, err
 	}
 
@@ -113,11 +114,13 @@ func (s *etcdStore) GetKey(storeName string, keyName string) ([]byte, error) {
 
 	resp, err := kapi.Get(context.Background(), s.keyPath(storeName, keyName), opts)
 	if err != nil {
+		log.Printf("Error trying to get key: %s", err)
 		return []byte{}, err
 	}
 
 	data, err := base64.StdEncoding.DecodeString(resp.Node.Value)
 	if err != nil {
+		log.Printf("Error trying to decode key value: %s", err)
 		return []byte{}, err
 	}
 
@@ -130,11 +133,11 @@ func (s *etcdStore) SetKey(storeName string, keyName string, value []byte) error
 
 	resp, err := kapi.Set(context.Background(), s.keyPath(storeName, keyName), base64.StdEncoding.EncodeToString(value), &client.SetOptions{})
 	if err != nil {
+		log.Printf("Error trying to set key: %s", err)
 		return err
-	} else {
-		// print common key info
-		log.Printf("Set is done. Metadata is %q\n", resp)
 	}
+
+	log.Printf("Set is done. Metadata is %q\n", resp)
 	return nil
 }
 
@@ -149,6 +152,7 @@ func (s *etcdStore) DeleteKey(storeName string, keyName string) error {
 
 	resp, err := kapi.Delete(context.Background(), s.keyPath(storeName, keyName), opts)
 	if err != nil {
+		log.Printf("Error trying to delete key: %s", err)
 		return err
 	} else {
 		// print common key info

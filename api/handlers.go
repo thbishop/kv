@@ -153,9 +153,7 @@ func (a *app) putKey(w http.ResponseWriter, r *http.Request) {
 
 	err = a.store.SetKey(rinfo.storeName, rinfo.keyName, body)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError) // TODO this should also handle client errors
-		w.Write([]byte(`{ "error": "` + err.Error() + `" }`))
+		respondWithServerError(w, err)
 		return
 	}
 
