@@ -182,13 +182,22 @@ Outputs:
     Export:
       Name: kv-vpc-id
   PublicSubnets:
-    Description: The ID of the public subnet
+    Description: The ID of the public subnets
     Value: !Join [ ",", [ !Ref PublicSubnet1, !Ref PublicSubnet2, !Ref PublicSubnet3 ] ]
     Export:
       Name: kv-public-subnets
   PrivateSubnets:
-    Description: The ID of the public subnet
+    Description: The ID of the private subnets
     Value: !Join [ ",", [ !Ref PrivateSubnet1, !Ref PrivateSubnet2, !Ref PrivateSubnet3 ] ]
     Export:
       Name: kv-private-subnets
-
+  PublicRouteTable:
+    Description: The ID of the public route table
+    Value: !Ref PublicRouteTable
+    Export:
+      Name: kv-public-route-table-id
+  PrivateRouteTable:
+    Description: The ID of the private route table
+    Value: !Ref PrivateRouteTable
+    Export:
+      Name: kv-private-route-table-id
