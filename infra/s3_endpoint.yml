@@ -1,0 +1,23 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: S3 Endpoint
+
+Resources:
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:*
+            Resource:
+              - "*"
+      RouteTableIds:
+        - !ImportValue kv-public-route-table-id
+        - !ImportValue kv-private-route-table-id
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcId: !ImportValue kv-vpc-id
