@@ -49,3 +49,12 @@ Outputs:
     Value: !Ref ELB
     Export:
       Name: kv-api-lb-id
+  ELBDNSName:
+    Description: DNS name of the ELB
+    Value: !GetAtt ELB.DNSName
+    Export:
+      Name: kv-api-lb-dns-name
+  ELBCanonicalHostedZoneNameId:
+    Value: !GetAtt ELB.CanonicalHostedZoneNameID
+    Export:
+      Name: kv-api-lb-canonical-hosted-zone-name-id

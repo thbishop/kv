@@ -1,0 +1,22 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: API DNS Record
+
+Parameters:
+  HostedZoneName:
+    Description: Name of the hosted zone to create the record in
+    Type: String
+    Default: dyson-sphere.com.
+
+Resources:
+  APIDNS:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: !Ref HostedZoneName
+      RecordSets:
+        - Name: !Sub kv-api.${HostedZoneName}
+          Type: A
+          AliasTarget:
+            HostedZoneId: !ImportValue kv-api-lb-canonical-hosted-zone-name-id
+            DNSName: !ImportValue kv-api-lb-dns-name
