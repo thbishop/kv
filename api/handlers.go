@@ -41,7 +41,6 @@ func respondWithBadRequest(w http.ResponseWriter, val validation) {
 
 func respondWithNotFound(w http.ResponseWriter, reason string) {
 	log.Printf("Responding with %d: %s", http.StatusNotFound, reason)
-
 	w.WriteHeader(http.StatusNotFound)
 }
 
@@ -123,7 +122,18 @@ func (a *app) createStore(w http.ResponseWriter, r *http.Request) {
 func (a *app) deleteStore(w http.ResponseWriter, r *http.Request) {
 	rinfo := newRequestInfo(r)
 
-	err := a.store.DeleteStore(rinfo.storeName)
+	exists, err := a.store.StoreExists(rinfo.storeName)
+	if err != nil {
+		respondWithServerError(w, err)
+		return
+	}
+
+	if !exists {
+		respondWithNotFound(w, "store does not exist")
+		return
+	}
+
+	err = a.store.DeleteStore(rinfo.storeName)
 	if err != nil {
 		respondWithServerError(w, err)
 		return
