@@ -59,7 +59,7 @@ type clientErrorResponse struct {
 }
 
 func validateAlphanumericString(s string) (validation, error) {
-	matched, err := regexp.MatchString("^[A-z-]+$", s)
+	matched, err := regexp.MatchString("^[A-z0-9-]+$", s)
 	if err != nil {
 		log.Printf("Unable to validate alphanumeric string; err: %s\n", err)
 		return validation{}, err
