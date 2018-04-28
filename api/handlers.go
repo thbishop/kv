@@ -17,12 +17,12 @@ func newRequestInfo(r *http.Request) requestInfo {
         keyName: mux.Vars(r)["key-name"],
         storeName: mux.Vars(r)["store-name"],
     }
-    log.Printf("request info: %+v\n", rinfo)
+    log.Printf("Request info: %+v\n", rinfo)
     return rinfo
 }
 
 func respondWithServerError(w http.ResponseWriter, err error) {
-    log.Printf("responding with 500: %s", err)
+    log.Printf("Responding with 500: %s", err)
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusInternalServerError)
 }

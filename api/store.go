@@ -49,7 +49,7 @@ func (s *etcdStore) CreateStore(storeName string) error {
     opts := client.SetOptions{Dir: true}
     resp, err := kapi.Set(context.Background(), s.storePath(storeName), "", &opts)
 	if err != nil {
-		log.Fatal(err)
+        return err
 	} else {
 		// print common key info
 		log.Printf("Set is done. Metadata is %q\n", resp)
@@ -67,7 +67,7 @@ func (s *etcdStore) DeleteStore(storeName string) error {
     }
     resp, err := kapi.Delete(context.Background(), s.storePath(storeName), &opts)
 	if err != nil {
-		log.Fatal(err)
+        return err
 	} else {
 		// print common key info
 		log.Printf("Deletion is done. Metadata is %q\n", resp)
