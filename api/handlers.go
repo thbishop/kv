@@ -26,7 +26,7 @@ func newRequestInfo(r *http.Request) requestInfo {
 }
 
 func respondWithBadRequest(w http.ResponseWriter, val validation) {
-	log.Printf("Responding with 400 due to validation error: %+v", val)
+	log.Printf("Responding with %d due to validation error: %+v", http.StatusBadRequest, val)
 
 	errResp := clientErrorResponse{Error: val.message}
 	b, err := json.Marshal(errResp)
@@ -39,8 +39,13 @@ func respondWithBadRequest(w http.ResponseWriter, val validation) {
 	w.Write(b)
 }
 
+func respondWithPayloadToLarge(w http.ResponseWriter, size int64) {
+	log.Printf("Responding with %d size is %d bytes", http.StatusRequestEntityTooLarge, size)
+	w.WriteHeader(http.StatusRequestEntityTooLarge)
+}
+
 func respondWithServerError(w http.ResponseWriter, err error) {
-	log.Printf("Responding with 500: %s", err)
+	log.Printf("Responding with %d: %s", http.StatusInternalServerError, err)
 	w.WriteHeader(http.StatusInternalServerError)
 }
 
@@ -123,7 +128,11 @@ func (a *app) putKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO enforce data size limit
+	if r.ContentLength > 2048 {
+		respondWithPayloadToLarge(w, r.ContentLength)
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		respondWithServerError(w, err)
