@@ -1,0 +1,114 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: API ASG
+
+Parameters:
+  ASGSize:
+    Description: Number of instances to run (this will be both the min and max)
+    Type: Number
+    Default: 1
+
+Resources:
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName: !Ref ASGLaunchConfig
+      LoadBalancerNames:
+        - !ImportValue kv-api-lb-id
+      MaxSize: !Ref ASGSize
+      MinSize: !Ref ASGSize
+      VPCZoneIdentifier: !Split [",",  !ImportValue kv-private-subnets]
+      Tags:
+        - Key: app
+          Value: kv
+          PropagateAtLaunch: true
+        - Key: Name
+          Value: kv-api
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT10M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        PauseTime: PT10M
+        WaitOnResourceSignals: true
+
+  ASGLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: ami-218eed59
+      InstanceMonitoring: false
+      InstanceType: t2.nano
+      KeyName: personal
+      SecurityGroups:
+        - !Ref SecurityGroup
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -ex
+          trap '/opt/aws/bin/cfn-signal -e 1 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}' ERR
+          mkdir -p /opt/kv/api
+          aws s3 cp s3://kv-artifacts-${AWS::Region}/api.zip /var/tmp/ --region ${AWS::Region}
+          cd /var/tmp
+          unzip /var/tmp/api.zip
+          cp /var/tmp/api /opt/kv/api/
+          chmod +x /opt/kv/api/api
+          useradd kv-api
+          chown -R kv-api:kv-api /opt/kv
+          cp /var/tmp/kv-api /etc/init.d/
+          chmod +x /etc/init.d/kv-api
+          chkconfig kv-api on
+          service kv-api start
+          /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access for load balancer and bastion
+      VpcId: !ImportValue kv-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8080
+          ToPort: 8080
+          SourceSecurityGroupId: !ImportValue kv-api-lb-security-group-id
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !ImportValue kv-bastion-security-group-id
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  InstanceRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: root
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action: s3:*
+            Resource: "*"
+      Roles:
+        - !Ref InstanceRole
