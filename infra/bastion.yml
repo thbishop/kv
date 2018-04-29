@@ -1,0 +1,33 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Bastion Instance
+
+Resources:
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-218eed59
+      InstanceType: t2.nano
+      KeyName: personal
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          GroupSet:
+            - !ImportValue kv-bastion-security-group-id
+          SubnetId: !Select
+            - 0
+            - !Split [",", !ImportValue kv-public-subnets]
+      Tags:
+        - Key: app
+          Value: kv
+        - Key: Name
+          Value: kv-bastion
+
+Outputs:
+  AZ:
+    Description: The AZ where the instance was provisioned
+    Value: !GetAtt Instance.AvailabilityZone
+  PublicIP:
+    Description: Public IP of the instance
+    Value: !GetAtt Instance.PublicIp
