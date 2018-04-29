@@ -1,0 +1,31 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: ETCD DNS Records
+
+Resources:
+  ClusterDiscoveryRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: kv.dyson-sphere.com.
+      RecordSets:
+        - Name: _etcd-server._tcp.kv.dyson-sphere.com
+          Type: SRV
+          ResourceRecords:
+            - 0 0 2380 etcd-us-west-2a.kv.dyson-sphere.com
+            - 0 0 2380 etcd-us-west-2b.kv.dyson-sphere.com
+            - 0 0 2380 etcd-us-west-2c.kv.dyson-sphere.com
+          TTL: 60
+
+  ClientDiscoveryRecords:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneName: kv.dyson-sphere.com.
+      RecordSets:
+        - Name: _etcd-client._tcp.kv.dyson-sphere.com
+          Type: SRV
+          ResourceRecords:
+            - 0 0 2379 etcd-us-west-2a.kv.dyson-sphere.com
+            - 0 0 2379 etcd-us-west-2b.kv.dyson-sphere.com
+            - 0 0 2379 etcd-us-west-2c.kv.dyson-sphere.com
+          TTL: 60
