@@ -1,0 +1,80 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: NAT Gateway
+
+Resources:
+  NAT1:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP1.AllocationId
+      SubnetId: !Select
+        - 0
+        - !Split [",", !ImportValue kv-public-subnets]
+      Tags:
+        - Key: app
+          Value: kv
+
+  NAT2:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP2.AllocationId
+      SubnetId: !Select
+        - 1
+        - !Split [",", !ImportValue kv-public-subnets]
+      Tags:
+        - Key: app
+          Value: kv
+
+  NAT3:
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt EIP3.AllocationId
+      SubnetId: !Select
+        - 2
+        - !Split [",", !ImportValue kv-public-subnets]
+      Tags:
+        - Key: app
+          Value: kv
+
+  EIP1:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  EIP2:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  EIP3:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  NATRoute1:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Select
+        - 0
+        - !Split [",", !ImportValue kv-private-route-tables]
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NAT1
+
+  NATRoute2:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Select
+        - 1
+        - !Split [",", !ImportValue kv-private-route-tables]
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NAT2
+
+  NATRoute3:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Select
+        - 2
+        - !Split [",", !ImportValue kv-private-route-tables]
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NAT3

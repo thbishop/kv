@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Base VPC template
+Description: VPC
 
 Resources:
   VPC:
@@ -11,16 +11,14 @@ Resources:
       EnableDnsSupport: true
       EnableDnsHostnames: true
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   IGW:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   IGWAttachment:
@@ -34,13 +32,12 @@ Resources:
     Properties:
       AvailabilityZone: !Select
         - 0
-        - Fn::GetAZs: !Ref 'AWS::Region'
+        - Fn::GetAZs: !Ref AWS::Region
       CidrBlock: 10.0.1.0/24
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   PublicSubnet2:
@@ -48,13 +45,12 @@ Resources:
     Properties:
       AvailabilityZone: !Select
         - 1
-        - Fn::GetAZs: !Ref 'AWS::Region'
+        - Fn::GetAZs: !Ref AWS::Region
       CidrBlock: 10.0.2.0/24
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   PublicSubnet3:
@@ -62,13 +58,12 @@ Resources:
     Properties:
       AvailabilityZone: !Select
         - 2
-        - Fn::GetAZs: !Ref 'AWS::Region'
+        - Fn::GetAZs: !Ref AWS::Region
       CidrBlock: 10.0.3.0/24
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   PrivateSubnet1:
@@ -76,13 +71,12 @@ Resources:
     Properties:
       AvailabilityZone: !Select
         - 0
-        - Fn::GetAZs: !Ref 'AWS::Region'
+        - Fn::GetAZs: !Ref AWS::Region
       CidrBlock: 10.0.10.0/24
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   PrivateSubnet2:
@@ -90,13 +84,12 @@ Resources:
     Properties:
       AvailabilityZone: !Select
         - 1
-        - Fn::GetAZs: !Ref 'AWS::Region'
+        - Fn::GetAZs: !Ref AWS::Region
       CidrBlock: 10.0.11.0/24
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   PrivateSubnet3:
@@ -104,22 +97,36 @@ Resources:
     Properties:
       AvailabilityZone: !Select
         - 2
-        - Fn::GetAZs: !Ref 'AWS::Region'
+        - Fn::GetAZs: !Ref AWS::Region
       CidrBlock: 10.0.12.0/24
       MapPublicIpOnLaunch: false
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
-  PrivateRouteTable:
+  PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
+          Value: kv
+
+  PrivateRouteTable2:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: app
+          Value: kv
+
+  PrivateRouteTable3:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: app
           Value: kv
 
   PublicRouteTable:
@@ -127,8 +134,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       Tags:
-        -
-          Key: app
+        - Key: app
           Value: kv
 
   PublicSubnet1RouteTableAssoc:
@@ -153,19 +159,19 @@ Resources:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnet1
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable1
 
   PrivateSubnet2RouteTableAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnet2
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable2
 
   PrivateSubnet3RouteTableAssoc:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       SubnetId: !Ref PrivateSubnet3
-      RouteTableId: !Ref PrivateRouteTable
+      RouteTableId: !Ref PrivateRouteTable3
 
   PublicInternetRoute:
     Type: AWS::EC2::Route
@@ -196,8 +202,9 @@ Outputs:
     Value: !Ref PublicRouteTable
     Export:
       Name: kv-public-route-table-id
-  PrivateRouteTable:
-    Description: The ID of the private route table
+  PrivateRouteTables:
+    Description: The ID of the private route tables
     Value: !Ref PrivateRouteTable
+    Value: !Join [ ",", [ !Ref PrivateRouteTable1, !Ref PrivateRouteTable2, !Ref PrivateRouteTable3 ] ]
     Export:
-      Name: kv-private-route-table-id
+      Name: kv-private-route-tables

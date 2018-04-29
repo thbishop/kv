@@ -18,6 +18,14 @@ Resources:
               - "*"
       RouteTableIds:
         - !ImportValue kv-public-route-table-id
-        - !ImportValue kv-private-route-table-id
+        - !Select
+          - 0
+          - !Split [",", !ImportValue kv-private-route-tables]
+        - !Select
+          - 1
+          - !Split [",", !ImportValue kv-private-route-tables]
+        - !Select
+          - 2
+          - !Split [",", !ImportValue kv-private-route-tables]
       ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
       VpcId: !ImportValue kv-vpc-id
