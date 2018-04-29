@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Basic ELB template
+Description: ELB
 
 Parameters:
   SSLCertARN:
@@ -35,7 +35,7 @@ Resources:
           Protocol: HTTPS
           SSLCertificateId: !Ref SSLCertARN
       HealthCheck:
-        Target: HTTP:80/status
+        Target: HTTP:8080/status
         HealthyThreshold: 3
         UnhealthyThreshold: 5
         Interval: 30
@@ -51,12 +51,14 @@ Resources:
 
 Outputs:
   ELB:
-    Description: The ELB ID
     Value: !Ref ELB
     Export:
       Name: kv-api-lb-id
+  ELBTrafficSecurityGroup:
+    Value: !Ref ELBTrafficSecurityGroup
+    Export:
+      Name: kv-api-lb-security-group-id
   ELBDNSName:
-    Description: DNS name of the ELB
     Value: !GetAtt ELB.DNSName
     Export:
       Name: kv-api-lb-dns-name
