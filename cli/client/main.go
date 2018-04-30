@@ -44,6 +44,23 @@ func SetKey(storeName string, keyName string, keyValue string) error {
 	return errorFromResponse(resp)
 }
 
+func DeleteKey(storeName string, keyName string) error {
+	// TODO handle error
+	// TODO breakout url building
+	req, err := http.NewRequest("DELETE", apiURL+"/stores/"+storeName+"/keys/"+keyName, nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+
+	return errorFromResponse(resp)
+}
+
 func GetKey(storeName string, keyName string) ([]byte, error) {
 	// TODO breakout url building
 	resp, err := http.Get(apiURL + "/stores/" + storeName + "/keys/" + keyName)
@@ -62,6 +79,10 @@ func GetKey(storeName string, keyName string) ([]byte, error) {
 	}
 
 	return []byte{}, errorFromResponse(resp)
+}
+
+func IsNotFoundError(err error) bool {
+	return err.Error() == "not found"
 }
 
 type apiError struct {
