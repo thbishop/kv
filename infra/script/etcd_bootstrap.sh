@@ -1,9 +1,5 @@
 #!/bin/bash -ex
 
-if [ -f /etc/init.d/functions ]; then
-  . /etc/init.d/functions
-fi
-
 aws s3 cp s3://kv-artifacts-us-west-2/etcd-v3.3.4-linux-amd64.tar.gz /var/tmp/ --region us-west-2
 cd /var/tmp
 tar zxf etcd-v3.3.4-linux-amd64.tar.gz
@@ -43,44 +39,8 @@ sleep 90
 
 hostname $new_hostname
 
-# see if there's an existing cluster with this node marked as failed
-if /opt/etcd/etcdctl --discovery-srv kv.dyson-sphere.com --insecure-discovery member list | grep -q ${new_hostname}; then 
-  echo "Found this node as an existing member; removing from the cluster"
-  etcd_member_id=$(/opt/etcd/etcdctl --discovery-srv kv.dyson-sphere.com --insecure-discovery member list | grep $new_hostname | awk -F ':' '{print $1}')
-  echo "ETCD member ID is: ${etcd_member_id}"
-  echo "Removing as member...."
-  /opt/etcd/etcdctl --discovery-srv kv.dyson-sphere.com --insecure-discovery member remove ${etcd_member_id}
-  echo "Cleaning up etcd data dir"
-  rm -fr /var/cache/etcd/
-  echo "Adding this node to the existing cluster"
-  add_member_output=$(/opt/etcd/etcdctl \
-    --discovery-srv kv.dyson-sphere.com \
-    --insecure-discovery \
-    member add ${new_hostname} http://${local_ip}:2380 | grep -v Added)
-  etcd_vars=($add_member_output)
-
-  for i in "${etcd_vars[@]}"
-  do
-    echo "export ${i}" >> /var/tmp/etcd_vars
-  done
-
-  source /var/tmp/etcd_vars
-
-  cd /opt/etcd
-  daemon ./etcd \
-    -initial-advertise-peer-urls http://${local_ip}:2380 \
-    -advertise-client-urls http://${local_ip}:2379 \
-    -listen-client-urls http://0.0.0.0:2379 \
-    -listen-peer-urls http://0.0.0.0:2380 \
-    -data-dir /var/cache/etcd/state \
-    -name $new_hostname > /var/log/etcd.log 2>&1 &
-
-  exit 0
-fi
-
-# otherwise join a new cluster
 cd /opt/etcd
-daemon ./etcd \
+nohup ./etcd \
   -discovery-srv kv.dyson-sphere.com \
   -initial-advertise-peer-urls http://${local_ip}:2380 \
   -advertise-client-urls http://${local_ip}:2379 \
