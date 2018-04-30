@@ -44,6 +44,26 @@ func SetKey(storeName string, keyName string, keyValue string) error {
 	return errorFromResponse(resp)
 }
 
+func GetKey(storeName string, keyName string) ([]byte, error) {
+	// TODO breakout url building
+	resp, err := http.Get(apiURL + "/stores/" + storeName + "/keys/" + keyName)
+	if err != nil {
+		return []byte{}, err
+	}
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return []byte{}, errors.New(fmt.Sprintf("reading response body (%s)", err))
+		}
+
+		return body, nil
+	}
+
+	return []byte{}, errorFromResponse(resp)
+}
+
 type apiError struct {
 	Error string `json:"error"`
 }
@@ -54,6 +74,10 @@ func errorFromResponse(resp *http.Response) error {
 	}
 
 	if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+		if resp.StatusCode == 404 {
+			return errors.New("not found")
+		}
+
 		var apiErr apiError
 		defer resp.Body.Close()
 
