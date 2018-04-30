@@ -79,6 +79,10 @@ func errorFromResponse(resp *http.Response) error {
 			return errors.New("not found")
 		}
 
+		if resp.StatusCode == 413 {
+			return errors.New("payload too large")
+		}
+
 		var apiErr apiError
 		defer resp.Body.Close()
 

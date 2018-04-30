@@ -58,6 +58,10 @@ func TestErrorFromResponse(t *testing.T) {
 			expectedErr: errors.New("not found"),
 		},
 		{
+			response:    &http.Response{StatusCode: 413},
+			expectedErr: errors.New("payload too large"),
+		},
+		{
 			response:    &http.Response{StatusCode: 100},
 			expectedErr: errors.New(fmt.Sprintf("unknown error (%v)", &http.Response{StatusCode: 100})),
 		},
