@@ -46,15 +46,15 @@ func (s *consulStore) KeyExists(storeName string, keyName string) (bool, error) 
 	return s.genericKeyExists(s.keyPath(storeName, keyName))
 }
 
-func (s *consulStore) CreateStore(name string) error {
-	log.Printf("Creating store '%s'\n", name)
-	_, err := s.kv.Put(&api.KVPair{Key: s.storePath(name)}, nil)
+func (s *consulStore) CreateStore(storeName string) error {
+	log.Printf("Creating store '%s'\n", storeName)
+	_, err := s.kv.Put(&api.KVPair{Key: s.storePath(storeName)}, nil)
 	if err != nil {
 		log.Printf("Error trying to create store: %s", err)
 		return err
 	}
 
-	log.Printf("Store '%s' created", name)
+	log.Printf("Store '%s' created", storeName)
 	return nil
 }
 
@@ -96,7 +96,7 @@ func (s *consulStore) GetKey(storeName string, keyName string) ([]byte, error) {
 	}
 
 	// TODO handle missing key as it would be nil here
-	log.Printf("Retrieved key '%s'", key)
+	log.Printf("Retrieved key '%s'", keyName)
 	return pair.Value, nil
 }
 
