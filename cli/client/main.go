@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -11,11 +12,26 @@ import (
 
 var apiURL = "https://kv-api.dyson-sphere.com/"
 
-func CreateStore(name string) error {
-	// TODO handle error
-	req, err := http.NewRequest("PUT", apiURL+"/stores/"+name, nil)
+func storeURL(storeName string) string {
+	return apiURL + "/stores/" + storeName
+}
+
+func keyURL(storeName string, keyName string) string {
+	return storeURL(storeName) + "/keys/" + keyName
+}
+
+func makeRequest(method string, url string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, body)
+	if err != nil {
+		return &http.Response{}, err
+	}
+
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	return client.Do(req)
+}
+
+func simpleRequestWrapper(method string, url string, body io.Reader) error {
+	resp, err := makeRequest("PUT", url, body)
 	if err != nil {
 		return err
 	}
@@ -25,62 +41,26 @@ func CreateStore(name string) error {
 	}
 
 	return errorFromResponse(resp)
+}
+
+func CreateStore(storeName string) error {
+	return simpleRequestWrapper("PUT", storeURL(storeName), nil)
 }
 
 func SetKey(storeName string, keyName string, keyValue string) error {
-	// TODO handle error
-	// TODO breakout url building
-	req, err := http.NewRequest("PUT", apiURL+"/stores/"+storeName+"/keys/"+keyName, strings.NewReader(keyValue))
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return nil
-	}
-
-	return errorFromResponse(resp)
+	return simpleRequestWrapper("PUT", keyURL(storeName, keyName), strings.NewReader(keyValue))
 }
 
 func DeleteStore(storeName string) error {
-	// TODO handle error
-	// TODO breakout url building
-	req, err := http.NewRequest("DELETE", apiURL+"/stores/"+storeName, nil)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return nil
-	}
-
-	return errorFromResponse(resp)
+	return simpleRequestWrapper("DELETE", storeURL(storeName), nil)
 }
 
 func DeleteKey(storeName string, keyName string) error {
-	// TODO handle error
-	// TODO breakout url building
-	req, err := http.NewRequest("DELETE", apiURL+"/stores/"+storeName+"/keys/"+keyName, nil)
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		return nil
-	}
-
-	return errorFromResponse(resp)
+	return simpleRequestWrapper("DELETE", keyURL(storeName, keyName), nil)
 }
 
 func GetKey(storeName string, keyName string) ([]byte, error) {
-	// TODO breakout url building
-	resp, err := http.Get(apiURL + "/stores/" + storeName + "/keys/" + keyName)
+	resp, err := makeRequest("GET", keyURL(storeName, keyName), nil)
 	if err != nil {
 		return []byte{}, err
 	}

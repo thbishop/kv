@@ -13,22 +13,22 @@ var createStoreCmd = &cobra.Command{
 	Short: "Creates a new store",
 	Long: `Creates a new store to store key/values. For example:
 
-kv create-store --name my-store
+kv create-store --store-name my-store
 
 `,
 	Run: func(cmd *cobra.Command, args []string) {
-		name := cmd.Flag("name").Value.String()
-		err := client.CreateStore(name)
+		storeName := cmd.Flag("store-name").Value.String()
+		err := client.CreateStore(storeName)
 		if err != nil {
 			fmt.Printf("Error creating store: %s\n", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Store '%s' created successfully\n", name)
+		fmt.Printf("Store '%s' created successfully\n", storeName)
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(createStoreCmd)
-	createStoreCmd.Flags().StringP("name", "", "", "Name of the store to create")
-	createStoreCmd.MarkFlagRequired("name")
+	createStoreCmd.Flags().StringP("store-name", "", "", "Name of the store to create")
+	createStoreCmd.MarkFlagRequired("store-name")
 }
