@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	store, err := newEtcdStore()
+	store, err := newConsulStore()
 	if err != nil {
 		log.Fatalf("unable to access store: %s", err)
 	}
