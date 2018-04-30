@@ -11,7 +11,7 @@ import (
 var setKeyCmd = &cobra.Command{
 	Use:   "set-key",
 	Short: "Sets the key",
-	Long: `Sets the key with the desired value. If the key is new, it will be created. If it is an existing key, the value will be overwritten. For example:
+	Long: `Sets the key with the desired value. If the key is new, it will be created. If it is an existing key, the value will be overwritten. The value must be text. If you need to store binary data, try encoding (base64 for example) it first. Example:
 
 kv set-key --store-name my-store --key-name key1 --key-value foo
 

@@ -11,7 +11,7 @@ import (
 var deleteStoreCmd = &cobra.Command{
 	Use:   "delete-store",
 	Short: "Deletes a store",
-	Long: `Deletes the desired store. This will also delete *all* keys that exist in the store. For example:
+	Long: `Deletes the desired store. This will also delete *all* keys that exist in the store. Example:
 
 kv delete-store --store-name my-store
 

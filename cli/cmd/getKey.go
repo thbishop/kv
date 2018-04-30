@@ -11,7 +11,7 @@ import (
 var getKeyCmd = &cobra.Command{
 	Use:   "get-key",
 	Short: "Gets the value of the key",
-	Long: `Gets the value of the key. For example:
+	Long: `Gets the value of the key. Example:
 
 kv get-key --store-name my-store --key-name key1
 

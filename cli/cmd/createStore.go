@@ -11,7 +11,7 @@ import (
 var createStoreCmd = &cobra.Command{
 	Use:   "create-store",
 	Short: "Creates a new store",
-	Long: `Creates a new store to store key/values. For example:
+	Long: `Creates a new store to store key/values. Example:
 
 kv create-store --store-name my-store
 

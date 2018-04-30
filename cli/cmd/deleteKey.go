@@ -11,7 +11,7 @@ import (
 var deleteKeyCmd = &cobra.Command{
 	Use:   "delete-key",
 	Short: "Deletes a key",
-	Long: `Deletes the desired key. For example:
+	Long: `Deletes the desired key. Example:
 
 kv delete-key --store-name my-store --key-name key1
 
