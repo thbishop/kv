@@ -44,6 +44,23 @@ func SetKey(storeName string, keyName string, keyValue string) error {
 	return errorFromResponse(resp)
 }
 
+func DeleteStore(storeName string) error {
+	// TODO handle error
+	// TODO breakout url building
+	req, err := http.NewRequest("DELETE", apiURL+"/stores/"+storeName, nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+
+	return errorFromResponse(resp)
+}
+
 func DeleteKey(storeName string, keyName string) error {
 	// TODO handle error
 	// TODO breakout url building
