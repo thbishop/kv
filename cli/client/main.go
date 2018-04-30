@@ -6,12 +6,31 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 var apiURL = "https://kv-api.dyson-sphere.com/"
 
 func CreateStore(name string) error {
+	// TODO handle error
 	req, err := http.NewRequest("PUT", apiURL+"/stores/"+name, nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil
+	}
+
+	return errorFromResponse(resp)
+}
+
+func SetKey(storeName string, keyName string, keyValue string) error {
+	// TODO handle error
+	// TODO breakout url building
+	req, err := http.NewRequest("PUT", apiURL+"/stores/"+storeName+"/keys/"+keyName, strings.NewReader(keyValue))
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
