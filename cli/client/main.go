@@ -7,10 +7,16 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 )
 
-var apiURL = "https://kv-api.dyson-sphere.com/"
+func apiURL() string {
+	if val, ok := os.LookupEnv("KV_CLI_API_URL"); ok {
+		return val
+	}
+	return "https://kv-api.dyson-sphere.com"
+}
 
 var prettyServerError = map[int]string{
 	500: "internal server error",
@@ -102,7 +108,7 @@ func errorFromResponse(resp *http.Response) error {
 }
 
 func storeURL(storeName string) string {
-	return apiURL + "/stores/" + storeName
+	return apiURL() + "/stores/" + storeName
 }
 
 func keyURL(storeName string, keyName string) string {
