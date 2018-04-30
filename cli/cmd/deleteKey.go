@@ -26,8 +26,7 @@ kv delete-key --store-name my-store --key-name key1
 				fmt.Printf("Key '%s' not found\n", keyName)
 				os.Exit(0)
 			}
-
-			fmt.Printf("Error deleting key: %s\n", err)
+			fmt.Fprintf(os.Stderr, "Error deleting key: %s\n", err)
 			os.Exit(1)
 		}
 

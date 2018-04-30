@@ -22,7 +22,7 @@ kv get-key --store-name my-store --key-name key1
 
 		value, err := client.GetKey(storeName, keyName)
 		if err != nil {
-			fmt.Printf("Error getting key: %s\n", err)
+			fmt.Fprintf(os.Stderr, "Error getting key: %s\n", err)
 			os.Exit(1)
 		}
 		fmt.Printf("%s", value)

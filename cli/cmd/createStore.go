@@ -20,7 +20,7 @@ kv create-store --store-name my-store
 		storeName := cmd.Flag("store-name").Value.String()
 		err := client.CreateStore(storeName)
 		if err != nil {
-			fmt.Printf("Error creating store: %s\n", err)
+			fmt.Fprintf(os.Stderr, "Error creating store: %s\n", err)
 			os.Exit(1)
 		}
 		fmt.Printf("Store '%s' created successfully\n", storeName)

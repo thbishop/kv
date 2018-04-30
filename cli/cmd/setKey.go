@@ -20,9 +20,10 @@ kv set-key --store-name my-store --key-name key1 --key-value foo
 		storeName := cmd.Flag("store-name").Value.String()
 		keyName := cmd.Flag("key-name").Value.String()
 		keyValue := cmd.Flag("key-value").Value.String()
+
 		err := client.SetKey(storeName, keyName, keyValue)
 		if err != nil {
-			fmt.Printf("Error setting key: %s\n", err)
+			fmt.Fprintf(os.Stderr, "Error setting key: %s\n", err)
 			os.Exit(1)
 		}
 		fmt.Printf("Key '%s' set successfully\n", keyName)

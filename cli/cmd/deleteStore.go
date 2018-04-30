@@ -26,7 +26,7 @@ kv delete-store --store-name my-store
 				os.Exit(0)
 			}
 
-			fmt.Printf("Error deleting store: %s\n", err)
+			fmt.Fprintf(os.Stderr, "Error deleting store: %s\n", err)
 			os.Exit(1)
 		}
 
