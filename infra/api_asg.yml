@@ -45,6 +45,7 @@ Resources:
       KeyName: personal
       SecurityGroups:
         - !Ref SecurityGroup
+        - !ImportValue kv-etcd-client-security-group-id
       UserData:
         "Fn::Base64": !Sub |
           #!/bin/bash -ex
