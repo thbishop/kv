@@ -1,7 +1,12 @@
 # kv demo project
 
-This repo contains items for the key-value demo project. The following
-components are included:
+This repo contains items for the key-value demo project.
+
+Here is a short recording of the project in action:
+[![asciicast](https://asciinema.org/a/Vy8UtezxttWwDk9nikVPFTjNy.png)](https://asciinema.org/a/Vy8UtezxttWwDk9nikVPFTjNy?speed=1.5&theme=solarized-light&size=small)
+
+
+The project includes the following components:
 
 * API
 * CLI
