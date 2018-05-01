@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -15,6 +16,7 @@ type Store interface {
 	GetKey(store string, key string) ([]byte, error)
 	DeleteKey(store string, key string) error
 	KeyExists(store string, key string) (bool, error)
+	IsKeyMissing(error) bool
 }
 
 type consulStore struct {
@@ -38,6 +40,10 @@ func (s *consulStore) StoreExists(storeName string) (bool, error) {
 func (s *consulStore) KeyExists(storeName string, keyName string) (bool, error) {
 	log.Printf("Checking if key '%s' in store '%s' exists", keyName, storeName)
 	return s.genericKeyExists(s.keyPath(storeName, keyName))
+}
+
+func (s *consulStore) IsKeyMissing(err error) bool {
+	return err.Error() == "key not found"
 }
 
 func (s *consulStore) CreateStore(storeName string) error {
@@ -89,7 +95,11 @@ func (s *consulStore) GetKey(storeName string, keyName string) ([]byte, error) {
 		return []byte{}, err
 	}
 
-	// TODO handle missing key as it would be nil here
+	if pair == nil {
+		log.Printf("Key '%s' not found", keyName)
+		return []byte{}, errors.New("key not found")
+	}
+
 	log.Printf("Retrieved key '%s'", keyName)
 	return pair.Value, nil
 }

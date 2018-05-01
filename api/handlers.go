@@ -223,6 +223,11 @@ func (a *app) getKey(w http.ResponseWriter, r *http.Request) {
 
 	data, err := a.store.GetKey(rinfo.storeName, rinfo.keyName)
 	if err != nil {
+		if a.store.IsKeyMissing(err) {
+			respondWithNotFound(w, "key does not exist")
+			return
+		}
+
 		respondWithServerError(w, err)
 		return
 	}
