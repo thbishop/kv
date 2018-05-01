@@ -1,0 +1,159 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Consul ASG
+
+Parameters:
+  ASGSize:
+    Description: Number of instances to run (this will be both the min and max)
+    Type: Number
+    Default: 1
+  AZIndex:
+    Description: Index (0 based) to pin to an AZ
+    Type: Number
+
+Resources:
+  ASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      LaunchConfigurationName: !Ref ASGLaunchConfig
+      MaxSize: !Ref ASGSize
+      MinSize: !Ref ASGSize
+      VPCZoneIdentifier:
+        - !Select
+          - !Ref AZIndex
+          - !Split [",",  !ImportValue kv-private-subnets]
+      Tags:
+        - Key: app
+          Value: kv
+          PropagateAtLaunch: true
+        - Key: Name
+          Value: kv-consul
+          PropagateAtLaunch: true
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: PT10M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        PauseTime: PT10M
+        WaitOnResourceSignals: true
+
+  ASGLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      IamInstanceProfile: !Ref InstanceProfile
+      ImageId: ami-218eed59
+      InstanceMonitoring: false
+      InstanceType: t2.nano
+      KeyName: personal
+      SecurityGroups:
+        - !Ref SecurityGroup
+        - !ImportValue kv-consul-cluster-security-group-id
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -x
+          # trap '/opt/aws/bin/cfn-signal -e 1 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}' ERR
+          aws s3 cp s3://kv-artifacts-${AWS::Region}/consul.zip /var/tmp/ --region ${AWS::Region}
+          cd /var/tmp
+          unzip consul.zip
+          chmod +x ./consul
+          mkdir -p /opt/consul
+          mv ./consul /opt/consul
+          cd /opt/consul
+          nohup ./consul agent -bootstrap-expect 3 -server -data-dir /opt/consul/data --retry-join "provider=aws tag_key=Name tag_value=kv-consul" >> /var/log/consul.log &
+          /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow client access to the cluster
+      VpcId: !ImportValue kv-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8300
+          ToPort: 8300
+          SourceSecurityGroupId: !ImportValue kv-consul-client-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8301
+          ToPort: 8302
+          SourceSecurityGroupId: !ImportValue kv-consul-client-security-group-id
+        - IpProtocol: udp
+          FromPort: 8301
+          ToPort: 8302
+          SourceSecurityGroupId: !ImportValue kv-consul-client-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8500
+          ToPort: 8500
+          SourceSecurityGroupId: !ImportValue kv-consul-client-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8600
+          ToPort: 8600
+          SourceSecurityGroupId: !ImportValue kv-consul-client-security-group-id
+        - IpProtocol: udp
+          FromPort: 8600
+          ToPort: 8600
+          SourceSecurityGroupId: !ImportValue kv-consul-client-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8300
+          ToPort: 8300
+          SourceSecurityGroupId: !ImportValue kv-consul-cluster-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8301
+          ToPort: 8302
+          SourceSecurityGroupId: !ImportValue kv-consul-cluster-security-group-id
+        - IpProtocol: udp
+          FromPort: 8301
+          ToPort: 8302
+          SourceSecurityGroupId: !ImportValue kv-consul-cluster-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8500
+          ToPort: 8500
+          SourceSecurityGroupId: !ImportValue kv-consul-cluster-security-group-id
+        - IpProtocol: tcp
+          FromPort: 8600
+          ToPort: 8600
+          SourceSecurityGroupId: !ImportValue kv-consul-cluster-security-group-id
+        - IpProtocol: udp
+          FromPort: 8600
+          ToPort: 8600
+          SourceSecurityGroupId: !ImportValue kv-consul-cluster-security-group-id
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          SourceSecurityGroupId: !ImportValue kv-bastion-security-group-id
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: /
+      Roles:
+        - !Ref InstanceRole
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: /
+
+  InstanceRolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: root
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          -
+            Effect: Allow
+            Action: "*"
+            Resource: "*"
+      Roles:
+        - !Ref InstanceRole

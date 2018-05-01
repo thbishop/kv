@@ -1,0 +1,27 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Consul Security Groups
+
+Resources:
+  ClientSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access to the cluster
+      VpcId: !ImportValue kv-vpc-id
+
+  ClusterSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow for cluster member communications
+      VpcId: !ImportValue kv-vpc-id
+
+Outputs:
+  ClientSecurityGroupId:
+    Value: !Ref ClientSecurityGroup
+    Export:
+      Name: kv-consul-client-security-group-id
+  ClusterSecurityGroupId:
+    Value: !Ref ClusterSecurityGroup
+    Export:
+      Name: kv-consul-cluster-security-group-id
