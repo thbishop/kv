@@ -12,12 +12,12 @@ import (
 )
 
 func TestKeyURL(t *testing.T) {
-	expected := apiURL + "/stores/foo/keys/bar"
+	expected := apiURL() + "/stores/foo/keys/bar"
 	assert.Equal(t, expected, keyURL("foo", "bar"))
 }
 
 func TestStoreURL(t *testing.T) {
-	expected := apiURL + "/stores/foo"
+	expected := apiURL() + "/stores/foo"
 	assert.Equal(t, expected, storeURL("foo"))
 }
 
