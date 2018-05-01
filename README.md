@@ -34,7 +34,7 @@ The API provides the following resources/methods for manipulating data:
 
 The API uses [consul](https://consul.io) for it's persistence layer.
 
-Have a look at the ["Local Development"
+Have a look at the [Local Development
 section](https://github.com/thbishop/kv#local-development) of this `README` to
 find out how to work with the API locally.
 
@@ -45,7 +45,7 @@ provides commands for all functionality of the API. This includes:
 * creating and deleting stores
 * setting, getting, and deleting keys
 
-There are pre-build binaries for [linux
+There are pre-built binaries for [linux
 (x64)](https://s3-us-west-2.amazonaws.com/kv-artifacts-us-west-2/kv-linux.zip) and
 [osx/macOS](https://s3-us-west-2.amazonaws.com/kv-artifacts-us-west-2/kv-darwin.zip).
 
