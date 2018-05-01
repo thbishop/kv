@@ -263,3 +263,22 @@ func (a *app) deleteKey(w http.ResponseWriter, r *http.Request) {
 func (a *app) status(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
+
+func (a *app) root(w http.ResponseWriter, r *http.Request) {
+	doc := `
+<!doctype html>
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Key/Value Service</h2>
+<br/>
+<p>
+Visit the <a href="https://github.com/thbishop/kv">github repo</a> for details
+</p>
+<body>
+</html>
+`
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(doc))
+}

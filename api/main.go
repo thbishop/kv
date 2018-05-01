@@ -31,6 +31,6 @@ func main() {
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.deleteKey).Methods("DELETE")
 	r.HandleFunc("/stores/{store-name}/keys/{key-name}", a.putKey).Methods("PUT")
 	r.HandleFunc("/status", a.status).Methods("GET")
-	http.Handle("/", r)
+	r.HandleFunc("/", a.root).Methods("GET")
 	log.Fatal(http.ListenAndServe(":"+listenPort, r))
 }
