@@ -15,7 +15,9 @@ var deleteKeyCmd = &cobra.Command{
 
 kv delete-key --store-name my-store --key-name key1
 
-** NOTE **: If the key does not exist, delete-key will *NOT* exit with an error. This is not considered an error as the intention is for the key to no longer exist.`,
+** NOTE **: If the key does not exist, delete-key will *NOT* exit with an error.
+This is not considered an error as the intention is for the key to no longer
+exist.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		storeName := cmd.Flag("store-name").Value.String()
 		keyName := cmd.Flag("key-name").Value.String()

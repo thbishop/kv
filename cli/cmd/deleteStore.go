@@ -15,7 +15,9 @@ var deleteStoreCmd = &cobra.Command{
 
 kv delete-store --store-name my-store
 
-** NOTE **: If the store does not exist, delete-store will *NOT* exit with an error. This is not considered an error as the intention is for the store to no longer exist.`,
+** NOTE **: If the store does not exist, delete-store will *NOT* exit with an
+error. This is not considered an error as the intention is for the store to no
+longer exist.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		storeName := cmd.Flag("store-name").Value.String()
 
