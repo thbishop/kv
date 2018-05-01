@@ -1,0 +1,14 @@
+#!/bin/bash
+set -exuo pipefail
+
+rm -f ./*.zip
+
+cd ../api/
+make package
+
+cd ../script
+
+zip -9 --junk-paths ./bootstrap.zip ../infra/script/*.sh
+
+aws s3 cp ../api/pkg/linux/api.zip s3://kv-artifacts-us-west-2/
+aws s3 cp ./bootstrap.zip s3://kv-artifacts-us-west-2/

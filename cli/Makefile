@@ -23,10 +23,10 @@ package:
 	@mkdir -p ${PKG_DIR}
 	@echo "\n==> darwin"
 	@env CGO_ENABLED=0 GOOS=darwin go build -v -o ${PKG_DIR}/darwin/${BIN}
-	@zip -9 --junk-path ${PKG_DIR}/darwin/${BIN}.zip ${PKG_DIR}/darwin/${BIN}
+	@zip -9 --junk-paths ${PKG_DIR}/darwin/${BIN}.zip ${PKG_DIR}/darwin/${BIN}
 	@echo "\n==> linux"
 	@env CGO_ENABLED=0 GOOS=linux go build -v -o ${PKG_DIR}/linux/${BIN}
-	@zip -9 --junk-path ${PKG_DIR}/linux/${BIN}.zip ${PKG_DIR}/linux/${BIN}
+	@zip -9 --junk-paths ${PKG_DIR}/linux/${BIN}.zip ${PKG_DIR}/linux/${BIN}
 
 test:
 	@go test -v ./...
