@@ -14,7 +14,6 @@ app="api"
 # Start the service
 run() {
   echo -n $"Starting $app:"
-  export KV_ETCD_ENDPOINTS="http://etcd-us-west-2a.kv.dyson-sphere.com:2379,etcd-us-west-2b.kv.dyson-sphere.com:2379,http://etcd-us-west-2c.kv.dyson-sphere.com:23799"
   cd /opt/kv/api/
   daemon --user=kv-api ./$app &> /var/log/$app.log < /dev/null &
 
