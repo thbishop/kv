@@ -9,6 +9,31 @@ Resources:
     Properties:
       GroupDescription: Allow access to the cluster
       VpcId: !ImportValue kv-vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8300
+          ToPort: 8300
+          SourceSecurityGroupId: !Ref ClusterSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 8301
+          ToPort: 8302
+          SourceSecurityGroupId: !Ref ClusterSecurityGroup
+        - IpProtocol: udp
+          FromPort: 8301
+          ToPort: 8302
+          SourceSecurityGroupId: !Ref ClusterSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 8500
+          ToPort: 8500
+          SourceSecurityGroupId: !Ref ClusterSecurityGroup
+        - IpProtocol: tcp
+          FromPort: 8600
+          ToPort: 8600
+          SourceSecurityGroupId: !Ref ClusterSecurityGroup
+        - IpProtocol: udp
+          FromPort: 8600
+          ToPort: 8600
+          SourceSecurityGroupId: !Ref ClusterSecurityGroup
 
   ClusterSecurityGroup:
     Type: AWS::EC2::SecurityGroup

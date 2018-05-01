@@ -52,17 +52,27 @@ Resources:
         - !ImportValue kv-consul-cluster-security-group-id
       UserData:
         "Fn::Base64": !Sub |
-          #!/bin/bash -x
-          # trap '/opt/aws/bin/cfn-signal -e 1 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}' ERR
-          aws s3 cp s3://kv-artifacts-${AWS::Region}/consul.zip /var/tmp/ --region ${AWS::Region}
+          #!/bin/bash -ex
+          trap '/opt/aws/bin/cfn-signal -e 1 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}' ERR
+          aws s3 cp \
+              s3://kv-artifacts-${AWS::Region}/bootstrap.zip \
+              /var/tmp/ \
+              --region ${AWS::Region}
           cd /var/tmp
-          unzip consul.zip
-          chmod +x ./consul
-          mkdir -p /opt/consul
-          mv ./consul /opt/consul
-          cd /opt/consul
-          nohup ./consul agent -bootstrap-expect 3 -server -data-dir /opt/consul/data --retry-join "provider=aws tag_key=Name tag_value=kv-consul" >> /var/log/consul.log &
-          /opt/aws/bin/cfn-signal -e 0 --stack ${AWS::StackName} --resource ASG --region ${AWS::Region}
+          unzip /var/tmp/bootstrap.zip
+          chmod +x *.sh
+          ./install_consul.sh
+          nohup /opt/consul/consul agent \
+              -bootstrap-expect 3 \
+              -server \
+              -data-dir /opt/consul/data \
+              -retry-join "provider=aws tag_key=Name tag_value=kv-consul" \
+              >> /var/log/consul.log &
+          /opt/aws/bin/cfn-signal \
+              -e 0 \
+              --stack ${AWS::StackName} \
+              --resource ASG \
+              --region ${AWS::Region}
 
   SecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -151,9 +161,11 @@ Resources:
       PolicyDocument:
         Version: 2012-10-17
         Statement:
-          -
-            Effect: Allow
-            Action: "*"
+          - Effect: Allow
+            Action: "s3:*"
+            Resource: "*"
+          - Effect: Allow
+            Action: ec2:DescribeInstances
             Resource: "*"
       Roles:
         - !Ref InstanceRole
