@@ -6,9 +6,14 @@ rm -f ./*.zip
 cd ../api/
 make package
 
+cd ../cli/
+make package
+
 cd ../script
 
 zip -9 --junk-paths ./bootstrap.zip ../infra/script/*.sh
 
 aws s3 cp ../api/pkg/linux/api.zip s3://kv-artifacts-us-west-2/
 aws s3 cp ./bootstrap.zip s3://kv-artifacts-us-west-2/
+aws s3 cp ../cli/pkg/darwin/kv.zip s3://kv-artifacts-us-west-2/kv-darwin.zip --acl public-read
+aws s3 cp ../cli/pkg/linux/kv.zip s3://kv-artifacts-us-west-2/kv-linux.zip --acl public-read
