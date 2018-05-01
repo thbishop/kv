@@ -12,6 +12,7 @@ make package
 cd ../script
 
 zip -9 --junk-paths ./bootstrap.zip ../infra/script/*.sh
+zip -9 -u --junk-paths ../api/pkg/linux/api.zip ../api/script/*
 
 aws s3 cp ../api/pkg/linux/api.zip s3://kv-artifacts-us-west-2/
 aws s3 cp ./bootstrap.zip s3://kv-artifacts-us-west-2/
